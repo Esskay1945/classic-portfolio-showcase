@@ -19,7 +19,7 @@ const SocialLinks = () => {
       </a>
 
       <a
-        href="https://linkedin.com/in/your-profile"
+        href="https://linkedin.com/in/siddharth-kumar-3b74482b4"
         target="_blank"
         rel="noopener noreferrer"
         className="icon-social group"

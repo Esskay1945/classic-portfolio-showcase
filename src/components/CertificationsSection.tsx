@@ -1,22 +1,38 @@
 import { useState } from "react";
-import { ArrowLeft, Lock, Unlock, Award } from "lucide-react";
+import { ArrowLeft, Lock, Unlock, Award, Briefcase, Code2, Database, BarChart3 } from "lucide-react";
+import { certifications, Certification } from "@/data/certifications";
 
 interface CertificationsSectionProps {
   onBack: () => void;
 }
 
-const certifications = [
-  {
-    id: "1",
-    title: "Coming Soon",
-    issuer: "Add your certifications",
-    description: "This section will display your professional certifications. Add them via the admin panel.",
-    date: "2024",
-  },
-];
+const categoryIcons = {
+  simulation: Briefcase,
+  technical: Code2,
+  business: BarChart3,
+  database: Database,
+};
+
+const categoryLabels = {
+  simulation: "Industry Job Simulations",
+  technical: "Technical Certifications",
+  business: "Business & Process Analytics",
+  database: "Database & Systems",
+};
 
 const CertificationsSection = ({ onBack }: CertificationsSectionProps) => {
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const groupedCerts = certifications.reduce((acc, cert) => {
+    if (!acc[cert.category]) {
+      acc[cert.category] = [];
+    }
+    acc[cert.category].push(cert);
+    return acc;
+  }, {} as Record<string, Certification[]>);
+
+  const categories = Object.keys(groupedCerts) as Array<keyof typeof categoryLabels>;
 
   return (
     <div className="min-h-screen py-16 px-4">
@@ -65,7 +81,7 @@ const CertificationsSection = ({ onBack }: CertificationsSectionProps) => {
         ) : (
           <>
             {/* Unlocked header */}
-            <div className="text-center mb-16 animate-fade-up">
+            <div className="text-center mb-12 animate-fade-up">
               <div className="inline-flex items-center gap-3 mb-4">
                 <Unlock className="w-8 h-8 text-gold" />
                 <h2 className="font-display text-4xl md:text-5xl text-gradient-gold">
@@ -73,39 +89,94 @@ const CertificationsSection = ({ onBack }: CertificationsSectionProps) => {
                 </h2>
               </div>
               <p className="font-body text-muted-foreground">
-                Professional credentials and achievements
+                {certifications.length} professional credentials and achievements
               </p>
             </div>
 
-            {/* Certifications grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {certifications.map((cert, index) => (
-                <div
-                  key={cert.id}
-                  className="card-cinematic card-hover rounded-xl p-6 opacity-0 animate-slide-up"
-                  style={{ animationDelay: `${index * 0.1}s`, animationFillMode: "forwards" }}
-                >
-                  <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center mb-4">
-                    <Award className="w-6 h-6 text-gold" />
-                  </div>
-                  
-                  <h3 className="font-display text-xl text-foreground mb-1">
-                    {cert.title}
-                  </h3>
-                  
-                  <p className="font-body text-sm text-gold mb-3">
-                    {cert.issuer}
-                  </p>
-                  
-                  <p className="font-body text-sm text-muted-foreground mb-4">
-                    {cert.description}
-                  </p>
-                  
-                  <p className="font-body text-xs text-smoke">
-                    {cert.date}
-                  </p>
-                </div>
-              ))}
+            {/* Category tabs */}
+            <div className="flex flex-wrap justify-center gap-3 mb-12">
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className={`px-4 py-2 rounded-lg font-body text-sm transition-all ${
+                  selectedCategory === null
+                    ? "bg-gold text-primary-foreground"
+                    : "bg-secondary text-foreground hover:bg-secondary/80"
+                }`}
+              >
+                All ({certifications.length})
+              </button>
+              {categories.map((cat) => {
+                const Icon = categoryIcons[cat];
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-4 py-2 rounded-lg font-body text-sm transition-all flex items-center gap-2 ${
+                      selectedCategory === cat
+                        ? "bg-gold text-primary-foreground"
+                        : "bg-secondary text-foreground hover:bg-secondary/80"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {categoryLabels[cat]} ({groupedCerts[cat].length})
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Certifications by category */}
+            <div className="space-y-12">
+              {categories
+                .filter((cat) => selectedCategory === null || selectedCategory === cat)
+                .map((category, categoryIndex) => {
+                  const Icon = categoryIcons[category];
+                  return (
+                    <div
+                      key={category}
+                      className="opacity-0 animate-slide-up"
+                      style={{ animationDelay: `${categoryIndex * 0.1}s`, animationFillMode: "forwards" }}
+                    >
+                      <div className="flex items-center gap-3 mb-6">
+                        <Icon className="w-6 h-6 text-gold" />
+                        <h3 className="font-display text-xl text-foreground">
+                          {categoryLabels[category]}
+                        </h3>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {groupedCerts[category].map((cert, index) => (
+                          <div
+                            key={cert.id}
+                            className="card-cinematic card-hover rounded-xl p-5"
+                            style={{ animationDelay: `${(categoryIndex * 0.1) + (index * 0.05)}s` }}
+                          >
+                            <div className="flex items-start gap-3 mb-3">
+                              <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
+                                <Award className="w-5 h-5 text-gold" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-display text-base text-foreground line-clamp-2">
+                                  {cert.title}
+                                </h4>
+                                <p className="font-body text-xs text-gold mt-1">
+                                  {cert.issuer}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <p className="font-body text-sm text-muted-foreground mb-3 line-clamp-3">
+                              {cert.description}
+                            </p>
+                            
+                            <p className="font-body text-xs text-smoke">
+                              {cert.date}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
             </div>
           </>
         )}

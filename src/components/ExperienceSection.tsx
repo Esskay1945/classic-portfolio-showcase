@@ -1,23 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles, Briefcase, ChevronDown, ChevronUp } from "lucide-react";
+import { experiences } from "@/data/experience";
 
 interface ExperienceSectionProps {
   onBack: () => void;
 }
 
-const experiences = [
-  {
-    id: "1",
-    title: "Coming Soon",
-    company: "Add your experience",
-    period: "Present",
-    description: "Add your professional experience via the admin panel. This section will showcase your career journey.",
-  },
-];
-
 const ExperienceSection = ({ onBack }: ExperienceSectionProps) => {
   const [showAnimation, setShowAnimation] = useState(true);
-  const [selectedExp, setSelectedExp] = useState<string | null>(null);
+  const [expandedExp, setExpandedExp] = useState<string | null>(null);
 
   const skipAnimation = useCallback(() => {
     setShowAnimation(false);
@@ -82,7 +73,7 @@ const ExperienceSection = ({ onBack }: ExperienceSectionProps) => {
             <div className="absolute right-0 top-16 w-2 h-24 bg-gradient-to-b from-gold to-transparent rounded-full animate-glow-pulse" />
           </div>
 
-          <p className="font-display text-2xl text-foreground italic animate-fade-in" style={{ animationDelay: "0.5s" }}>
+          <p className="font-display text-2xl md:text-3xl text-foreground italic animate-fade-in" style={{ animationDelay: "0.5s" }}>
             "The journey defines the wizard..."
           </p>
           
@@ -110,7 +101,7 @@ const ExperienceSection = ({ onBack }: ExperienceSectionProps) => {
 
   return (
     <div className="min-h-screen py-16 px-4">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         {/* Back button */}
         <button
           onClick={onBack}
@@ -130,42 +121,76 @@ const ExperienceSection = ({ onBack }: ExperienceSectionProps) => {
           </p>
         </div>
 
-        {/* Experience cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Experience timeline */}
+        <div className="relative">
+          {/* Vertical line */}
+          <div className="absolute left-0 md:left-1/2 top-0 bottom-0 w-px bg-border md:-translate-x-1/2" />
+
           {experiences.map((exp, index) => (
             <div
               key={exp.id}
-              onClick={() => setSelectedExp(selectedExp === exp.id ? null : exp.id)}
-              className="card-cinematic card-hover rounded-2xl p-6 cursor-pointer opacity-0 animate-slide-up"
-              style={{ animationDelay: `${index * 0.1}s`, animationFillMode: "forwards" }}
+              className={`relative flex flex-col md:flex-row gap-8 mb-12 opacity-0 animate-slide-up ${
+                index % 2 === 0 ? "md:flex-row-reverse" : ""
+              }`}
+              style={{ animationDelay: `${index * 0.15}s`, animationFillMode: "forwards" }}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="font-display text-xl text-foreground">
-                    {exp.title}
-                  </h3>
-                  <p className="font-body text-sm text-gold">
-                    {exp.company}
+              {/* Timeline dot */}
+              <div className="absolute left-0 md:left-1/2 w-4 h-4 rounded-full bg-gold border-4 border-background md:-translate-x-1/2 z-10" />
+
+              {/* Content card */}
+              <div className={`ml-8 md:ml-0 md:w-1/2 ${index % 2 === 0 ? "md:pr-12" : "md:pl-12"}`}>
+                <div 
+                  className="card-cinematic card-hover rounded-2xl p-6 cursor-pointer"
+                  onClick={() => setExpandedExp(expandedExp === exp.id ? null : exp.id)}
+                >
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
+                      <Briefcase className="w-6 h-6 text-gold" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-display text-xl text-foreground">
+                        {exp.title}
+                      </h3>
+                      <p className="font-body text-sm text-gold">
+                        {exp.company}
+                      </p>
+                      <p className="font-body text-xs text-muted-foreground mt-1">
+                        {exp.period}
+                      </p>
+                    </div>
+                    <div className="text-muted-foreground">
+                      {expandedExp === exp.id ? (
+                        <ChevronUp className="w-5 h-5" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5" />
+                      )}
+                    </div>
+                  </div>
+
+                  <p className="font-body text-sm text-muted-foreground mb-4">
+                    {exp.description}
                   </p>
+
+                  {/* Expandable responsibilities */}
+                  <div className={`overflow-hidden transition-all duration-300 ${
+                    expandedExp === exp.id ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                  }`}>
+                    <div className="pt-4 border-t border-border">
+                      <p className="font-body text-xs text-gold uppercase tracking-wider mb-3">
+                        Key Responsibilities
+                      </p>
+                      <ul className="space-y-2">
+                        {exp.responsibilities.map((resp, idx) => (
+                          <li key={idx} className="flex items-start gap-2 font-body text-sm text-foreground/80">
+                            <span className="w-1.5 h-1.5 rounded-full bg-gold mt-2 flex-shrink-0" />
+                            {resp}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
                 </div>
-                <span className="font-body text-xs text-muted-foreground px-3 py-1 bg-secondary rounded-full">
-                  {exp.period}
-                </span>
               </div>
-
-              {/* Expandable description */}
-              <div className={`overflow-hidden transition-all duration-300 ${
-                selectedExp === exp.id ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-              }`}>
-                <p className="font-body text-sm text-muted-foreground pt-4 border-t border-border">
-                  {exp.description}
-                </p>
-              </div>
-
-              {/* Click hint */}
-              <p className="font-body text-xs text-smoke mt-4">
-                {selectedExp === exp.id ? "Click to collapse" : "Click for details"}
-              </p>
             </div>
           ))}
         </div>
